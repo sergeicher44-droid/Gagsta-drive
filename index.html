@@ -348,7 +348,418 @@
   const btnDown = document.getElementById('btnDown');
   const btnFire = document.getElementById('btnFire');
 
-  // Адаптивный канвас
   function resizeCanvas() {
     const container = canvas.parentElement;
     const maxWidth = container.clientWidth - 16;
+    const ratio = 800 / 400;
+    let w = Math.min(maxWidth, 800);
+    let h = w / ratio;
+    if (h > window.innerHeight * 0.4) {
+      h = window.innerHeight * 0.4;
+      w = h * ratio;
+    }
+    canvas.width = w;
+    canvas.height = h;
+    canvas.style.width = w + 'px
+        canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // Игровые переменные
+  let gameRunning = false;
+  let animationFrameId;
+  let timeLeft = 180; // 3 минуты в секундах
+  let kills = 0;
+  const targetKills = 10;
+  let hp = 100;
+  let level = 1;
+  let enemies = [];
+  let bullets = [];
+  let particles = [];
+  let boss = null;
+  let player = { x: 40, y: 200, w: 30, h: 20, speed: 5, hp: 100 };
+  
+  // Управление
+  const keys = { up: false, down: false, fire: false };
+  
+  function handleStart() {
+    startOverlay.classList.add('hidden');
+    gameRunning = true;
+    timeLeft = 180;
+    kills = 0;
+    hp = 100;
+    level = 1;
+    enemies = [];
+    bullets = [];
+    particles = [];
+    boss = null;
+    player.y = canvas.height / 2;
+    
+    updateUI();
+    loop();
+  }
+
+  function endGame(win) {
+    gameRunning = false;
+    cancelAnimationFrame(animationFrameId);
+    if (win) {
+      winOverlay.classList.add('show');
+      debugDisplay.innerText = '🏆 ПОБЕДА! Ты зачистил сектор!';
+    } else {
+      loseOverlay.classList.add('show');
+      debugDisplay.innerText = '💀 МИССИЯ ПРОВАЛЕНА';
+    }
+  }
+
+  function updateUI() {
+    const mm = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const ss = (timeLeft % 60).toString().padStart(2, '0');
+    timerDisplay.innerText = `⏱️ ${mm}:${ss}`;
+    killCounter.innerText = `${kills}/${targetKills}`;
+    enemyCountDisplay.innerText = `🚗 ${enemies.length}`;
+    hpDisplay.innerText = `❤️ ${hp}`;
+    levelDisplay.innerText = `УРОВЕНЬ ${level}`;
+    
+    if (boss) {
+      bossHpDisplay.classList.add('active');
+      bossHpDisplay.innerText = `💀 БОСС: ${boss.hp}`;
+    } else {
+      bossHpDisplay.classList.remove('active');
+    }
+
+    if (timeLeft <= 0) {
+      endGame(false);
+    }
+    if (kills >= targetKills && !boss) {
+      spawnBoss();
+    }
+  }
+
+  function spawnEnemy() {
+    const speed = 2 + (level * 0.3);
+    const y = Math.random() * (canvas.height - 40);
+    enemies.push({
+      x: canvas.width,
+      y: y,
+      w: 35,
+      h: 25,
+      speed: speed,
+      type: Math.random() > 0.7 ? 'armored' : 'normal'
+    });
+  }
+
+  function spawnBoss() {
+    boss = {
+      x: canvas.width + 50,
+      y: canvas.height / 2 - 40,
+      w: 80,
+      h: 80,
+      hp: 5 + level,
+      maxHp: 5 + level,
+      speed: 1.5,
+      phase: 0 // 0 - приближение, 1 - атака
+    };
+  }
+
+  function spawnBullet(x, y) {
+    bullets.push({
+      x: x,
+      y: y - 5,
+      w: 12,
+      h: 6,
+      speed: 12
+    });
+  }
+
+  function createParticles(x, y, count, color) {
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: x,
+        y: y,
+        vx: (Math.random() - 0.5) * 10,
+        vy: (Math.random() - 0.5) * 10,
+        life: 1.0,
+        color: color
+      });
+    }
+  }
+
+  function handleControls() {
+    if (keys.up) player.y -= player.speed;
+    if (keys.down) player.y += player.speed;
+    
+    // Ограничение по вертикали
+    player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
+
+    if (keys.fire) {
+      const now = Date.now();
+      if (!player.lastShot || now - player.lastShot > 150) {
+        spawnBullet(player.x + player.w, player.y + player.h / 2);
+        player.lastShot = now;
+      }
+    }
+  }
+
+  function updateEnemies() {
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      let e = enemies[i];
+      e.x -= e.speed;
+
+      // Столкновение с игроком
+      if (
+        e.x < player.x + player.w &&
+        e.x + e.w > player.x &&
+        e.y < player.y + player.h &&
+        e.y + e.h > player.y
+      ) {
+        hp -= 10;
+        createParticles(player.x + player.w/2, player.y + player.h/2, 8, '#ff4444');
+        enemies.splice(i, 1);
+        if (hp <= 0) endGame(false);
+        updateUI();
+        continue;
+      }
+
+      // Столкновение со снарядами
+      for (let j = bullets.length - 1; j >= 0; j--) {
+        let b = bullets[j];
+        if (
+          b.x < e.x + e.w &&
+          b.x + b.w > e.x &&
+          b.y < e.y + e.h &&
+          b.y + b.h > e.y
+        ) {
+          bullets.splice(j, 1);
+          createParticles(e.x + e.w/2, e.y + e.h/2, 6, e.type === 'armored' ? '#ffff00' : '#ffffff');
+          
+          if (e.type === 'normal') {
+            enemies.splice(i, 1);
+            kills++;
+            updateUI();
+          } else {
+            // Бронированный враг теряет часть прочности при попадании
+            e.hp = (e.hp || 2) - 1;
+            if (e.hp <= 0) {
+              enemies.splice(i, 1);
+              kills++;
+              updateUI();
+            }
+          }
+          break;
+        }
+      }
+
+      if (e.x + e.w < 0) enemies.splice(i, 1);
+    }
+  }
+
+  function updateBoss() {
+    if (!boss) return;
+
+    if (boss.x > canvas.width / 2) {
+      boss.x -= boss.speed;
+    } else if (boss.phase === 0) {
+      boss.phase = 1; // Переход в фазу атаки
+    }
+
+    // Атака босса (выпускает снаряды)
+    if (boss.phase === 1 && Math.random() < 0.02) {
+      const bx = boss.x + boss.w / 2;
+      const by = boss.y + boss.h / 2;
+      bullets.push({ x: bx, y: by, w: 14, h: 14, speed: -6, isBossBullet: true });
+    }
+
+    // Столкновение босса с игроком
+    if (
+      player.x < boss.x + boss.w &&
+      player.x + player.w > boss.x &&
+      player.y < boss.y + boss.h &&
+      player.y + player.h > boss.y
+    ) {
+      hp -= 20;
+      createParticles(player.x + player.w/2, player.y + player.h/2, 10, '#ff0000');
+      if (hp <= 0) endGame(false);
+      updateUI();
+    }
+
+    // Попадания по боссу
+    for (let j = bullets.length - 1; j >= 0; j--) {
+      let b = bullets[j];
+      if (b.isBossBullet) continue;
+      if (
+        b.x < boss.x + boss.w &&
+        b.x + b.w > boss.x &&
+        b.y < boss.y + boss.h &&
+        b.y + b.h > boss.y
+      ) {
+        bullets.splice(j, 1);
+        boss.hp--;
+        createParticles(boss.x + boss.w/2, boss.y + boss.h/2, 12, '#ffff00');
+        if (boss.hp <= 0) {
+          level++;
+          kills = targetKills; // Завершаем миссию
+          boss = null;
+          updateUI();
+          setTimeout(() => {
+            if (gameRunning) endGame(true);
+          }, 500);
+        } else {
+          updateUI();
+        }
+        break;
+      }
+    }
+  }
+
+  function updateBullets() {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      let b = bullets[i];
+      b.x += b.speed;
+      
+      if (b.x > canvas.width || b.x + b.w < 0) {
+        bullets.splice(i, 1);
+      }
+    }
+  }
+
+  function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      let p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 0.05;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  function draw() {
+    ctx.fillStyle = '#2a3a4a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Рисуем игрока
+    ctx.fillStyle = '#00ff88';
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+    ctx.strokeStyle = '#004422';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(player.x, player.y, player.w, player.h);
+
+    // Рисуем врагов
+    enemies.forEach(e => {
+      ctx.fillStyle = e.type === 'armored' ? '#ffaa00' : '#ff4444';
+      ctx.fillRect(e.x, e.y, e.w, e.h);
+      if (e.type === 'armored') {
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px Courier New';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('ARM', e.x + e.w/2, e.y + e.h/2);
+      }
+    });
+
+    // Рисуем босса
+    if (boss) {
+      ctx.fillStyle = '#880000';
+      ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(boss.x, boss.y, boss.w, boss.h);
+      
+      // Полоска здоровья босса
+      const barW = boss.w - 8;
+      const hpPercent = boss.hp / boss.maxHp;
+      ctx.fillStyle = '#330000';
+      ctx.fillRect(boss.x + 4, boss.y - 12, barW, 6);
+      ctx.fillStyle = hpPercent > 0.3 ? '#00aa00' : '#aa0000';
+      ctx.fillRect(boss.x + 4, boss.y - 12, barW * hpPercent, 6);
+    }
+
+    // Рисуем снаряды
+    bullets.forEach(b => {
+      if (b.isBossBullet) {
+        ctx.fillStyle = '#ff3333';
+        ctx.beginPath();
+        ctx.arc(b.x + b.w/2, b.y + b.h/2, b.w/2, 0, Math.PI*2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+      }
+    });
+
+    // Рисуем частицы
+    particles.forEach(p => {
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, 4, 4);
+      ctx.globalAlpha = 1.0;
+    });
+  }
+
+  function loop() {
+    if (!gameRunning) return;
+    handleControls();
+    updateEnemies();
+    updateBoss();
+    updateBullets();
+    updateParticles();
+    draw();
+    animationFrameId = requestAnimationFrame(loop);
+  }
+
+  // Таймер
+  setInterval(() => {
+    if (gameRunning) {
+      timeLeft--;
+      updateUI();
+    }
+  }, 1000);
+
+  // Спавн врагов
+  setInterval(() => {
+    if (gameRunning && !boss) {
+      spawnEnemy();
+    }
+  }, 800 - (level * 50));
+
+  // Обработчики событий
+  startOverlay.addEventListener('click', handleStart);
+  restartBtn.addEventListener('click', () => {
+    winOverlay.classList.remove('show');
+    loseOverlay.classList.remove('show');
+    handleStart();
+  });
+  fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {});
+      fullscreenBtn.classList.add('active');
+    } else {
+      document.exitFullscreen();
+      fullscreenBtn.classList.remove('active');
+    }
+  });
+
+  btnUp.addEventListener('touchstart', (e) => { e.preventDefault(); keys.up = true; }, {passive: false});
+  btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); keys.down = true; }, {passive: false});
+  btnFire.addEventListener('touchstart', (e) => { e.preventDefault(); keys.fire = true; }, {passive: false});
+  
+  btnUp.addEventListener('touchend', () => keys.up = false);
+  btnDown.addEventListener('touchend', () => keys.down = false);
+  btnFire.addEventListener('touchend', () => keys.fire = false);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = true;
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = true;
+    if (e.code === 'Space' || e.code === 'KeyF') keys.fire = true;
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = false;
+    if (e.code === 'Space' || e.code === 'KeyF') keys.fire = false;
+  });
+})();
+</script>
+</body>
+</html>
