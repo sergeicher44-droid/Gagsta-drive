@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>PDA · GANGSTA DRIVE · MOBILE EDITION</title>
+  <title>PDA · GANGSTA DRIVE · COMPACT</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
     body {
@@ -15,7 +15,7 @@
       align-items: center;
       font-family: 'Courier New', monospace;
       overflow: hidden;
-      touch-action: manipulation;
+      touch-action: none; /* Блокируем зум/скролл браузера */
       position: fixed;
       width: 100%;
     }
@@ -24,19 +24,18 @@
       height: 100vh;
       height: 100dvh;
       background: #1e2636;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 0 0 3px #4c5a72;
-      padding: 8px 6px 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      padding: 4px; /* Уменьшен отступ */
       display: flex;
       flex-direction: column;
       position: relative;
-      transition: all 0.3s ease;
     }
     .screen {
       flex: 1;
       background: #0f121c;
-      border-radius: 16px;
-      padding: 6px 8px 8px;
-      box-shadow: inset 0 0 30px #00000088, 0 0 0 2px #39475e;
+      border-radius: 12px;
+      padding: 4px; /* Уменьшен отступ */
+      box-shadow: inset 0 0 20px #00000088, 0 0 0 2px #39475e;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -46,79 +45,79 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 2px 6px 6px 6px;
+      padding: 2px 4px; /* Компактнее */
       border-bottom: 2px solid #2f3d54;
       color: #a3c0e0;
-      font-size: 12px;
+      font-size: 11px; /* Чуть меньше шрифт */
       letter-spacing: 1px;
       font-weight: bold;
       text-shadow: 0 0 8px #00a6ff60;
       gap: 4px;
       flex-wrap: wrap;
     }
-    .status-bar .delta { display: flex; gap: 4px; }
+    .status-bar .delta { display: flex; gap: 2px; }
     .status-bar .delta span {
       background: #1d2a3c;
-      padding: 2px 6px;
-      border-radius: 6px;
+      padding: 1px 4px;
+      border-radius: 4px;
       color: #9bc9ff;
-      font-size: 10px;
+      font-size: 9px;
     }
     .timer {
       background: #1d2a3c;
-      padding: 2px 8px;
-      border-radius: 10px;
+      padding: 1px 6px;
+      border-radius: 8px;
       color: #f2c94c;
-      font-size: 14px;
-      box-shadow: inset 0 0 12px #f2c94c30;
+      font-size: 12px;
+      box-shadow: inset 0 0 8px #f2c94c30;
     }
     #gameCanvas {
       flex: 1;
       width: 100%;
       background: #2a3a4a;
-      border-radius: 10px;
+      border-radius: 8px;
       display: block;
       margin: 4px 0;
-      box-shadow: inset 0 0 50px #000000aa;
+      box-shadow: inset 0 0 30px #000000aa;
       touch-action: none;
     }
     .footer-panel {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 6px 2px;
+      padding: 4px;
       border-top: 2px solid #2f3d54;
       color: #7a93b0;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: bold;
       letter-spacing: 1px;
       flex-wrap: wrap;
       gap: 4px;
     }
-    .footer-panel .left { display: flex; gap: 8px; }
+    .footer-panel .left { display: flex; gap: 4px; }
     .footer-panel .left span {
       background: #1d2a3c;
-      padding: 2px 8px;
-      border-radius: 8px;
+      padding: 2px 6px;
+      border-radius: 6px;
       color: #b6d4f0;
-      font-size: 11px;
+      font-size: 10px;
     }
     .footer-panel .kills {
       background: #2a1f2a;
-      padding: 2px 12px;
-      border-radius: 20px;
+      padding: 2px 8px;
+      border-radius: 12px;
       color: #ff6b7a;
-      font-size: 14px;
-      box-shadow: 0 0 12px #ff3b4a60;
+      font-size: 12px;
+      box-shadow: 0 0 8px #ff3b4a60;
     }
     .sub-mission {
       text-align: center;
-      font-size: 10px;
+      font-size: 9px;
       color: #6b8aaa;
       background: #101724;
-      padding: 4px 0 3px;
-      border-radius: 20px;
-      margin: 4px 0 0;
+      padding: 2px 0;
+      border-radius: 12px;
+      margin: 2px 0 0;
       letter-spacing: 1px;
       font-weight: bold;
       text-transform: uppercase;
@@ -128,22 +127,22 @@
     
     .bottom-buttons {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       margin: 4px 0 0;
-      padding: 0 2px;
+      padding: 0;
     }
     
     .restart-btn, .fullscreen-btn {
       background: #1f2b3d;
-      border: 2px solid #3f5470;
+      border: 1px solid #3f5470;
       color: #c0d8f0;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: bold;
-      padding: 8px 16px;
-      border-radius: 30px;
+      padding: 6px 10px;
+      border-radius: 20px;
       font-family: 'Courier New', monospace;
       cursor: pointer;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
       touch-action: manipulation;
       transition: transform 0.1s, background 0.1s;
     }
@@ -157,11 +156,11 @@
       background: #1a2a1f;
       border-color: #3a5a3a;
       color: #80ff80;
-      min-width: 55px;
+      min-width: 40px;
       text-align: center;
-      font-size: 20px;
-      padding: 8px 12px;
-      box-shadow: 0 0 10px #44ff4420;
+      font-size: 16px;
+      padding: 6px 8px;
+      box-shadow: 0 0 8px #44ff4420;
     }
     .fullscreen-btn.active {
       background: #2a3a1a;
@@ -172,49 +171,49 @@
     .corner-delta {
       position: absolute;
       color: #3f5777;
-      font-size: 10px;
+      font-size: 9px;
       opacity: 0.3;
       pointer-events: none;
     }
-    .top-left { top: 18px; left: 14px; }
-    .bottom-right { bottom: 18px; right: 14px; }
+    .top-left { top: 12px; left: 10px; }
+    .bottom-right { bottom: 12px; right: 10px; }
     .hp-bar {
       background: #1d2a3c;
-      padding: 2px 8px;
-      border-radius: 10px;
+      padding: 1px 6px;
+      border-radius: 8px;
       color: #ff6b7a;
-      font-size: 11px;
+      font-size: 10px;
     }
     .controls-hint {
-      font-size: 9px;
+      font-size: 8px;
       color: #5a7a9a;
       text-align: center;
-      padding: 2px 0;
+      padding: 1px 0;
       letter-spacing: 1px;
       margin-top: -2px;
     }
     .level-display {
       background: #1d2a3c;
-      padding: 2px 10px;
-      border-radius: 10px;
+      padding: 1px 6px;
+      border-radius: 8px;
       color: #9bc9ff;
-      font-size: 11px;
+      font-size: 10px;
     }
     .boss-hp {
       background: #2a1a1a;
-      padding: 2px 10px;
-      border-radius: 10px;
+      padding: 1px 6px;
+      border-radius: 8px;
       color: #ff8844;
-      font-size: 11px;
+      font-size: 10px;
       display: none;
     }
     .boss-hp.active { display: inline-block; }
     .debug {
       color: #0f0;
-      font-size: 10px;
+      font-size: 9px;
       text-align: center;
       background: #000;
-      padding: 3px;
+      padding: 2px;
       margin-top: 2px;
       border-radius: 4px;
     }
@@ -223,25 +222,27 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 4px 6px;
-      gap: 6px;
+      padding: 2px 4px;
+      gap: 4px;
       border-top: 1px solid #2f3d54;
       margin-top: 2px;
     }
     .touch-btn {
       background: #1f2b3d;
-      border: 2px solid #3f5470;
+      border: 1px solid #3f5470;
       color: #c0d8f0;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
-      padding: 8px 10px;
-      border-radius: 12px;
+      padding: 6px 8px;
+      border-radius: 8px;
       font-family: 'Courier New', monospace;
       touch-action: manipulation;
       flex: 1;
       text-align: center;
+      /* Убираем задержку нажатия */
+      cursor: pointer; 
     }
-    .touch-btn:active { background: #2f405a; transform: scale(0.93); }
+    .touch-btn:active { background: #2f405a; transform: scale(0.95); }
     .touch-fire {
       background: #2a1f2a;
       border-color: #5a3a3a;
@@ -263,21 +264,21 @@
     .win-overlay.show { display: flex; }
     .win-overlay .main {
       font-family: 'Courier New', monospace;
-      font-size: 36px;
+      font-size: 28px;
       font-weight: 900;
       color: #ffdd00;
-      text-shadow: 0 0 40px #ffdd00, 0 0 80px #ffdd00, 0 0 120px #ff8800;
-      letter-spacing: 8px;
+      text-shadow: 0 0 20px #ffdd00, 0 0 40px #ff8800;
+      letter-spacing: 4px;
       text-align: center;
       animation: winPulse 0.8s infinite alternate;
     }
     .win-overlay .sub {
       font-family: 'Courier New', monospace;
-      font-size: 14px;
+      font-size: 12px;
       color: #fff;
       opacity: 0.8;
-      margin-top: 10px;
-      letter-spacing: 3px;
+      margin-top: 8px;
+      letter-spacing: 2px;
     }
     @keyframes winPulse {
       0% { transform: scale(1); }
@@ -287,23 +288,23 @@
     .lose-overlay.show { display: flex; }
     .lose-overlay .main {
       font-family: 'Courier New', monospace;
-      font-size: 32px;
+      font-size: 24px;
       font-weight: 900;
       color: #ff2222;
-      text-shadow: 0 0 40px #ff0000, 0 0 80px #ff0000;
-      letter-spacing: 6px;
+      text-shadow: 0 0 20px #ff0000;
+      letter-spacing: 4px;
       text-align: center;
       animation: loseShake 0.12s infinite alternate;
     }
     .lose-overlay .sub {
       font-family: 'Courier New', monospace;
-      font-size: 14px;
+      font-size: 12px;
       color: #ffaaaa;
-      margin-top: 10px;
+      margin-top: 8px;
     }
     @keyframes loseShake {
-      0% { transform: translateX(-3px); }
-      100% { transform: translateX(3px); }
+      0% { transform: translateX(-2px); }
+      100% { transform: translateX(2px); }
     }
     .start-overlay {
       display: flex;
@@ -314,77 +315,20 @@
     .start-overlay.hidden { display: none; }
     .start-overlay .main {
       font-family: 'Courier New', monospace;
-      font-size: 42px;
+      font-size: 32px;
       font-weight: 900;
       color: #00ff88;
-      text-shadow: 0 0 40px #00ff88, 0 0 80px #00ff88;
+      text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88;
     }
     .start-overlay .sub {
       font-family: 'Courier New', monospace;
-      font-size: 14px;
+      font-size: 12px;
       color: #fff;
-      margin-top: 8px;
+      margin-top: 4px;
     }
     @keyframes pulse {
       0% { transform: scale(1); opacity: 0.9; }
       100% { transform: scale(1.04); opacity: 1; }
-    }
-
-    /* --- АДАПТАЦИЯ ДЛЯ ГОРИЗОНТАЛЬНОЙ ОРИЕНТАЦИИ --- */
-    @media (orientation: landscape) {
-      .pda {
-        flex-direction: row; /* Меняем ось на горизонтальную */
-        max-width: 100vw;
-        padding: 4px;
-      }
-      
-      .screen {
-        flex: 3; /* Экран занимает 75% ширины */
-        margin-right: 4px;
-        border-radius: 8px;
-      }
-
-      /* Правая панель управления */
-      .controls-wrapper {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        background: #151b26;
-        border-radius: 8px;
-        padding: 4px;
-        border: 2px solid #39475e;
-        justify-content: space-between;
-      }
-
-      .touch-controls {
-        flex-direction: column; /* Кнопки друг под другом */
-        border-top: none;
-        margin-top: 0;
-        height: 100%;
-        justify-content: center;
-        gap: 10px;
-      }
-
-      .touch-btn {
-        padding: 15px 5px;
-        font-size: 14px;
-      }
-
-      .footer-panel {
-        border-top: none;
-        border-bottom: 1px solid #2f3d54;
-        flex-direction: column;
-        text-align: center;
-        padding: 4px 0;
-      }
-      
-      .bottom-buttons {
-        flex-direction: column;
-      }
-      
-      .sub-mission, .controls-hint {
-        display: none; /* Скрываем подсказки в ландшафте для экономии места */
-      }
     }
   </style>
 </head>
@@ -399,49 +343,46 @@
       <div class="sub">нажми на экран</div>
     </div>
     <div class="win-overlay" id="winOverlay">
-      <div class="main">🏆 ТЫ ПОБЕДИЛ!</div>
-      <div class="sub">нажми РЕСТАРТ</div>
+      <div class="main">🏆 ПОБЕДА!</div>
+      <div class="sub">жми РЕСТАРТ</div>
     </div>
     <div class="lose-overlay" id="loseOverlay">
-      <div class="main">💀 ТЫ ПРОИГРАЛ</div>
-      <div class="sub">нажми РЕСТАРТ</div>
+      <div class="main">💀 ПРОВАЛ</div>
+      <div class="sub">жми РЕСТАРТ</div>
     </div>
 
     <div class="status-bar">
       <div class="delta"><span>Δ</span><span>=</span><span>Δ</span></div>
       <div class="timer" id="timerDisplay">⏱️ 03:00</div>
-      <div class="level-display" id="levelDisplay">УРОВЕНЬ 1</div>
+      <div class="level-display" id="levelDisplay">LVL 1</div>
       <div class="hp-bar" id="hpDisplay">❤️ 100</div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="400"></canvas>
 
-    <!-- Оборачиваем нижнюю часть для удобства переноса в сайдбар при ландшафте -->
-    <div class="controls-wrapper"> 
-      <div class="touch-controls">
-        <button class="touch-btn" id="btnUp">⬆️ ВВЕРХ</button>
-        <button class="touch-btn touch-fire" id="btnFire">💥 ОГОНЬ</button>
-        <button class="touch-btn" id="btnDown">⬇️ ВНИЗ</button>
-      </div>
+    <div class="touch-controls">
+      <button class="touch-btn" id="btnUp">⬆️</button>
+      <button class="touch-btn touch-fire" id="btnFire">💥</button>
+      <button class="touch-btn" id="btnDown">⬇️</button>
+    </div>
 
-      <div class="footer-panel">
-        <div class="left">
-          <span>🎯</span>
-          <span id="killCounter">0/10</span>
-        </div>
-        <div class="kills" id="enemyCountDisplay">🚗 0/10</div>
-        <div class="boss-hp" id="bossHpDisplay">💀 БОСС: 5</div>
+    <div class="footer-panel">
+      <div class="left">
+        <span>🎯</span>
+        <span id="killCounter">0/10</span>
       </div>
-      <div class="controls-hint">⬆️⬇️ ДВИЖЕНИЕ | 💥 СТРЕЛЬБА</div>
-      <div class="sub-mission">
-        <span>⚡ убей всех врагов за <strong>3</strong> мин ⚡</span>
-      </div>
-      <div class="debug" id="debugDisplay">⚡ ТАПНИ ПО ЭКРАНУ ⚡</div>
-      
-      <div class="bottom-buttons">
-        <button class="restart-btn" id="restartBtn">⟳ РЕСТАРТ</button>
-        <button class="fullscreen-btn" id="fullscreenBtn" title="Полноэкранный режим">⛶</button>
-      </div>
+      <div class="kills" id="enemyCountDisplay">🚗 0/10</div>
+      <div class="boss-hp" id="bossHpDisplay">💀 БОСС: 5</div>
+    </div>
+    <div class="controls-hint">ТАП = ОГОНЬ | ⛶ = ФУЛЛСКРИН</div>
+    <div class="sub-mission">
+      <span>⚡ цель: <strong>10</strong> тачек ⚡</span>
+    </div>
+    <div class="debug" id="debugDisplay">⚡ ГОТОВ ⚡</div>
+    
+    <div class="bottom-buttons">
+      <button class="restart-btn" id="restartBtn">⟳ RESTART</button>
+      <button class="fullscreen-btn" id="fullscreenBtn" title="Полный экран">⛶</button>
     </div>
   </div>
 </div>
@@ -527,7 +468,6 @@
       }
     }
 
-    // Кнопка полноэкранного режима
     fullscreenBtn.addEventListener('click', (e) => {
       e.preventDefault();
       toggleFullscreen();
@@ -537,7 +477,6 @@
       e.stopPropagation();
     });
 
-    // Отслеживание выхода из полноэкранного режима
     function handleFullscreenChange() {
       const fs = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
       if (!fs && isFullscreen) {
@@ -552,7 +491,6 @@
     document.addEventListener('msfullscreenchange', handleFullscreenChange);
     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
 
-    // Клавиша F
     document.addEventListener('keydown', (e) => {
       if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
@@ -853,10 +791,10 @@
       loseOverlay.classList.remove('show');
       if (isVictory) {
         winOverlay.classList.add('show');
-        debugDisplay.textContent = '🏆 ТЫ ПОБЕДИЛ!';
+        debugDisplay.textContent = '🏆 ПОБЕДА!';
       } else {
         loseOverlay.classList.add('show');
-        debugDisplay.textContent = '💀 ТЫ ПРОИГРАЛ';
+        debugDisplay.textContent = '💀 ПРОВАЛ';
       }
       upPressed = false;
       downPressed = false;
@@ -911,28 +849,29 @@
       gameStarted = true;
       gameActive = true;
       lastTime = performance.now();
-      debugDisplay.textContent = '🎮 ИГРА НАЧАЛАСЬ!';
+      debugDisplay.textContent = '🎮 STARTED!';
     }
 
-    // Кнопки управления
-    btnUp.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      upPressed = true;
-      if (!gameStarted && !gameOver) startGame();
-    });
-    btnUp.addEventListener('pointerup', () => { upPressed = false; });
-    btnUp.addEventListener('pointerleave', () => { upPressed = false; });
+    // --- УНИВЕРСАЛЬНЫЕ ОБРАБОТЧИКИ (Pointer Events) ---
+    // Работают и для мыши, и для тача без задержек
     
-    btnDown.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      downPressed = true;
-      if (!gameStarted && !gameOver) startGame();
-    });
-    btnDown.addEventListener('pointerup', () => { downPressed = false; });
-    btnDown.addEventListener('pointerleave', () => { downPressed = false; });
+    const bindBtn = (btn, actionStart, actionEnd) => {
+      btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        actionStart();
+        if (!gameStarted && !gameOver) startGame();
+      });
+      btn.addEventListener('pointerup', (e) => { e.preventDefault(); actionEnd(); });
+      btn.addEventListener('pointerleave', (e) => { e.preventDefault(); actionEnd(); });
+      btn.addEventListener('pointercancel', (e) => { e.preventDefault(); actionEnd(); });
+    };
+
+    bindBtn(btnUp, () => upPressed = true, () => upPressed = false);
+    bindBtn(btnDown, () => downPressed = true, () => downPressed = false);
     
+    // Огонь обрабатываем отдельно, так как там логика старта/рестарта
     btnFire.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); e.stopPropagation();
+      e.preventDefault();
       if (!gameStarted && !gameOver) { startGame(); return; }
       if (gameOver) { restartGame(); return; }
       if (gameActive) { shootAtNearestEnemy(); if (navigator.vibrate) navigator.vibrate(15); }
@@ -1155,17 +1094,17 @@
       
       if (bossDefeated) {
         killCounter.textContent = kills + ' ★';
-        enemyCountDisplay.textContent = '✅ ПОБЕДА';
+        enemyCountDisplay.textContent = '✅ WIN';
       } else if (bossActive) {
         killCounter.textContent = kills + ' ★';
-        enemyCountDisplay.textContent = '💀 БОСС';
+        enemyCountDisplay.textContent = '💀 BOSS';
       } else {
         killCounter.textContent = kills + '/' + totalEnemiesPerLevel;
         enemyCountDisplay.textContent = '🚗 ' + enemies.length + '/' + totalEnemiesPerLevel;
       }
       
       hpDisplay.textContent = '❤️ ' + Math.max(0, Math.floor(player.hp));
-      if (!bossActive && !bossSpawned) levelDisplay.textContent = 'УРОВЕНЬ ' + level;
+      if (!bossActive && !bossSpawned) levelDisplay.textContent = 'LVL ' + level;
     }
 
     function draw() {
@@ -1211,13 +1150,13 @@
       totalEnemiesPerLevel = 10; enemiesSpawned = 0;
       
       bossHpDisplay.classList.remove('active');
-      levelDisplay.textContent = 'УРОВЕНЬ 1';
+      levelDisplay.textContent = 'LVL 1';
       winOverlay.classList.remove('show'); loseOverlay.classList.remove('show');
       startOverlay.classList.remove('hidden'); gameStarted = false;
       upPressed = false; downPressed = false;
       
       initEnemies(); updateUI();
-      debugDisplay.textContent = '👆 ТАПНИ ПО ЭКРАНУ ДЛЯ СТАРТА';
+      debugDisplay.textContent = '👆 ТАП ДЛЯ СТАРТА';
       if (navigator.vibrate) navigator.vibrate(50);
     }
 
@@ -1233,7 +1172,7 @@
 
     initEnemies(); updateUI();
     requestAnimationFrame(gameLoop);
-    debugDisplay.textContent = '👆 ТАПНИ ПО ЭКРАНУ ДЛЯ СТАРТА';
+    debugDisplay.textContent = '👆 ТАП ДЛЯ СТАРТА';
   })();
 </script>
 </body>
