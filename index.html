@@ -15,7 +15,7 @@
       align-items: center;
       font-family: 'Courier New', monospace;
       overflow: hidden;
-      touch-action: none; /* Блокируем зум/скролл браузера */
+      touch-action: none;
       position: fixed;
       width: 100%;
     }
@@ -25,7 +25,7 @@
       height: 100dvh;
       background: #1e2636;
       box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-      padding: 4px; /* Уменьшен отступ */
+      padding: 4px;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -34,7 +34,7 @@
       flex: 1;
       background: #0f121c;
       border-radius: 12px;
-      padding: 4px; /* Уменьшен отступ */
+      padding: 4px;
       box-shadow: inset 0 0 20px #00000088, 0 0 0 2px #39475e;
       display: flex;
       flex-direction: column;
@@ -45,10 +45,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 2px 4px; /* Компактнее */
+      padding: 2px 4px;
       border-bottom: 2px solid #2f3d54;
       color: #a3c0e0;
-      font-size: 11px; /* Чуть меньше шрифт */
+      font-size: 11px;
       letter-spacing: 1px;
       font-weight: bold;
       text-shadow: 0 0 8px #00a6ff60;
@@ -143,7 +143,6 @@
       font-family: 'Courier New', monospace;
       cursor: pointer;
       letter-spacing: 1px;
-      touch-action: manipulation;
       transition: transform 0.1s, background 0.1s;
     }
     .restart-btn { flex: 1; }
@@ -236,11 +235,10 @@
       padding: 6px 8px;
       border-radius: 8px;
       font-family: 'Courier New', monospace;
-      touch-action: manipulation;
       flex: 1;
       text-align: center;
-      /* Убираем задержку нажатия */
-      cursor: pointer; 
+      cursor: pointer;
+      touch-action: none;
     }
     .touch-btn:active { background: #2f405a; transform: scale(0.95); }
     .touch-fire {
@@ -259,6 +257,7 @@
       align-items: center;
       flex-direction: column;
       z-index: 200;
+      cursor: pointer;
     }
     .win-overlay { background: rgba(0, 0, 0, 0.75); pointer-events: auto; }
     .win-overlay.show { display: flex; }
@@ -407,7 +406,6 @@
     const btnDown = document.getElementById('btnDown');
     const btnFire = document.getElementById('btnFire');
 
-    // Адаптивный канвас
     function resizeCanvas() {
       const container = canvas.parentElement;
       const maxWidth = container.clientWidth - 16;
@@ -425,24 +423,18 @@
     window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
     resizeCanvas();
 
-    // ========== ПОЛНОЭКРАННЫЙ РЕЖИМ ==========
     let isFullscreen = false;
 
     function enterFullscreen() {
       const el = document.documentElement;
-      
       if (el.requestFullscreen) {
         el.requestFullscreen().catch(() => {});
       } else if (el.webkitRequestFullscreen) {
         el.webkitRequestFullscreen();
-      } else if (el.msRequestFullscreen) {
-        el.msRequestFullscreen();
       }
-      
       isFullscreen = true;
       fullscreenBtn.textContent = '✕';
       fullscreenBtn.classList.add('active');
-      if (navigator.vibrate) navigator.vibrate(20);
     }
 
     function exitFullscreen() {
@@ -450,35 +442,22 @@
         document.exitFullscreen();
       } else if (document.webkitExitFullscreen) {
         document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
       }
-      
       isFullscreen = false;
       fullscreenBtn.textContent = '⛶';
       fullscreenBtn.classList.remove('active');
-      if (navigator.vibrate) navigator.vibrate(15);
     }
 
     function toggleFullscreen() {
-      if (isFullscreen) {
-        exitFullscreen();
-      } else {
-        enterFullscreen();
-      }
+      if (isFullscreen) exitFullscreen();
+      else enterFullscreen();
     }
 
-    fullscreenBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      toggleFullscreen();
-    });
-    fullscreenBtn.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-
+    // Используем click для системных кнопок
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    
     function handleFullscreenChange() {
-      const fs = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+      const fs = document.fullscreenElement || document.webkitFullscreenElement;
       if (!fs && isFullscreen) {
         isFullscreen = false;
         fullscreenBtn.textContent = '⛶';
@@ -488,14 +467,9 @@
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('msfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        toggleFullscreen();
-      }
+      if (e.key === 'f' || e.key === 'F') toggleFullscreen();
     });
 
     const GAME_DURATION = 180;
@@ -546,7 +520,6 @@
     let upPressed = false;
     let downPressed = false;
 
-    // ========== КОЛЁСА ==========
     function drawWheel(cx, cy, r, isOffroad) {
       ctx.fillStyle = '#1a1a1a';
       ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
@@ -584,7 +557,6 @@
       ctx.beginPath(); ctx.arc(cx, cy, r * 0.2, 0, Math.PI * 2); ctx.fill();
     }
 
-    // ========== СТРЕЛОК НА КРЫШЕ ==========
     function drawGunnerOnRoof(cx, roofTop) {
       const s = SCALE;
       const gunnerY = roofTop - 12 * s;
@@ -625,7 +597,6 @@
       }
     }
 
-    // ========== ДЖИП ИГРОКА ==========
     function drawPlayerJeep() {
       const s = SCALE;
       const x = player.x - 14 * s, y = player.y - 18 * s;
@@ -683,7 +654,6 @@
       ctx.fillText('ИГРОК', cx, y - 18 * s);
     }
 
-    // ========== ВРАГИ ==========
     function drawEnemyCar(e, index) {
       const s = SCALE;
       const colors = [
@@ -727,7 +697,6 @@
       drawWheel(x + w * 0.75, wheelY, wheelRadius, false);
     }
 
-    // ========== БОСС ТАНК ==========
     function drawBossTank() {
       if (!boss) return;
       const s = SCALE;
@@ -736,12 +705,10 @@
 
       ctx.shadowColor = '#ff4400'; ctx.shadowBlur = 30;
 
-      // Гусеницы
       ctx.fillStyle = '#1a1a1a';
       ctx.fillRect(x + 2 * s, y + h - 15 * s, w - 4 * s, 14 * s);
       ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5; ctx.strokeRect(x + 2 * s, y + h - 15 * s, w - 4 * s, 14 * s);
       
-      // Корпус
       ctx.fillStyle = '#4a5a3a';
       ctx.beginPath();
       ctx.moveTo(x + 8 * s, y + 10 * s);
@@ -751,7 +718,6 @@
       ctx.closePath(); ctx.fill();
       ctx.strokeStyle = '#6a7a5a'; ctx.lineWidth = 2.5; ctx.stroke();
 
-      // Башня
       ctx.fillStyle = '#3a4a2a';
       ctx.beginPath();
       ctx.moveTo(cx - 17 * s, y - 4 * s);
@@ -761,7 +727,6 @@
       ctx.closePath(); ctx.fill();
       ctx.strokeStyle = '#5a6a4a'; ctx.lineWidth = 2; ctx.stroke();
 
-      // Пушка
       ctx.fillStyle = '#555';
       ctx.fillRect(cx - 3 * s, y - 22 * s, 6 * s, 16 * s);
       ctx.fillStyle = '#666';
@@ -774,14 +739,12 @@
       ctx.fillText('ТАНК-БОСС', cx, y - 30 * s);
       ctx.fillText('T-666', cx, y + h - 4 * s);
 
-      // HP бар
       ctx.fillStyle = '#ff3344';
       ctx.fillRect(x + 4 * s, y - 35 * s, w - 8 * s, 5 * s);
       ctx.fillStyle = '#44ff44';
       ctx.fillRect(x + 4 * s, y - 35 * s, (boss.hp / boss.maxHp) * (w - 8 * s), 5 * s);
     }
 
-    // ========== ИГРОВАЯ ЛОГИКА ==========
     function triggerGameOver(isVictory) {
       if (gameOver) return;
       gameActive = false;
@@ -799,7 +762,6 @@
       upPressed = false;
       downPressed = false;
       updateUI();
-      if (navigator.vibrate) navigator.vibrate(isVictory ? 200 : 300);
     }
 
     function shootAtNearestEnemy() {
@@ -852,33 +814,32 @@
       debugDisplay.textContent = '🎮 STARTED!';
     }
 
-    // --- УНИВЕРСАЛЬНЫЕ ОБРАБОТЧИКИ (Pointer Events) ---
-    // Работают и для мыши, и для тача без задержек
+    // ПРАВИЛЬНЫЕ ОБРАБОТЧИКИ ДЛЯ КНОПОК УПРАВЛЕНИЯ
+    // Используем pointerdown/pointerup без preventDefault
     
-    const bindBtn = (btn, actionStart, actionEnd) => {
-      btn.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        actionStart();
-        if (!gameStarted && !gameOver) startGame();
-      });
-      btn.addEventListener('pointerup', (e) => { e.preventDefault(); actionEnd(); });
-      btn.addEventListener('pointerleave', (e) => { e.preventDefault(); actionEnd(); });
-      btn.addEventListener('pointercancel', (e) => { e.preventDefault(); actionEnd(); });
-    };
-
-    bindBtn(btnUp, () => upPressed = true, () => upPressed = false);
-    bindBtn(btnDown, () => downPressed = true, () => downPressed = false);
+    btnUp.addEventListener('pointerdown', (e) => {
+      upPressed = true;
+      if (!gameStarted && !gameOver) startGame();
+    });
+    btnUp.addEventListener('pointerup', () => { upPressed = false; });
+    btnUp.addEventListener('pointerleave', () => { upPressed = false; });
+    btnUp.addEventListener('pointercancel', () => { upPressed = false; });
     
-    // Огонь обрабатываем отдельно, так как там логика старта/рестарта
+    btnDown.addEventListener('pointerdown', (e) => {
+      downPressed = true;
+      if (!gameStarted && !gameOver) startGame();
+    });
+    btnDown.addEventListener('pointerup', () => { downPressed = false; });
+    btnDown.addEventListener('pointerleave', () => { downPressed = false; });
+    btnDown.addEventListener('pointercancel', () => { downPressed = false; });
+    
     btnFire.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
       if (!gameStarted && !gameOver) { startGame(); return; }
       if (gameOver) { restartGame(); return; }
-      if (gameActive) { shootAtNearestEnemy(); if (navigator.vibrate) navigator.vibrate(15); }
+      if (gameActive) shootAtNearestEnemy();
     });
 
     canvas.addEventListener('pointerdown', function(e) {
-      e.preventDefault();
       if (!gameStarted && !gameOver) { startGame(); return; }
       if (gameOver) { restartGame(); return; }
       if (!gameActive) return;
@@ -889,7 +850,6 @@
       
       if (player.shootCooldown <= 0) {
         fireBullet(tapX, tapY);
-        if (navigator.vibrate) navigator.vibrate(10);
       }
     });
 
@@ -946,7 +906,6 @@
       bossHpDisplay.classList.add('active');
       bossHpDisplay.textContent = '💀 БОСС: ' + BALANCE.BOSS_HP;
       levelDisplay.textContent = '👹 БОСС';
-      if (navigator.vibrate) navigator.vibrate(100);
     }
 
     function checkLevelComplete() {
@@ -976,7 +935,6 @@
       if (downPressed) { player.y += player.speed; if (player.y > canvas.height - 25) player.y = canvas.height - 25; }
       if (player.shootCooldown > 0) player.shootCooldown--;
 
-      // Враги
       for (let e of enemies) {
         e.x -= e.speed;
         e.shootCooldown--;
@@ -996,7 +954,6 @@
       }
       enemies = enemies.filter(e => e.x > -80);
 
-      // Босс
       if (bossActive && boss) {
         boss.y += boss.speed * boss.direction;
         if (boss.y < 25) { boss.y = 25; boss.direction = 1; }
@@ -1018,11 +975,9 @@
         }
       }
 
-      // Пули игрока
       for (let b of playerBullets) { b.x += b.vx; b.y += b.vy; b.life--; }
       playerBullets = playerBullets.filter(b => b.life > 0 && b.x < canvas.width + 30 && b.x > -30);
 
-      // Попадания
       for (let i = playerBullets.length - 1; i >= 0; i--) {
         const b = playerBullets[i];
         let hit = false;
@@ -1031,7 +986,7 @@
           const e = enemies[j];
           if (b.x > e.x && b.x < e.x + e.width && b.y > e.y && b.y < e.y + e.height) {
             e.hp -= b.damage; playerBullets.splice(i, 1); hit = true;
-            if (e.hp <= 0) { enemies.splice(j, 1); kills++; if (navigator.vibrate) navigator.vibrate(20); }
+            if (e.hp <= 0) { enemies.splice(j, 1); kills++; }
             break;
           }
         }
@@ -1039,19 +994,16 @@
         if (!hit && bossActive && boss) {
           if (b.x > boss.x && b.x < boss.x + BOSS_WIDTH && b.y > boss.y && b.y < boss.y + BOSS_HEIGHT) {
             boss.hp -= b.damage; playerBullets.splice(i, 1); hit = true;
-            if (navigator.vibrate) navigator.vibrate(25);
             bossHpDisplay.textContent = '💀 БОСС: ' + Math.max(0, boss.hp);
             if (boss.hp <= 0) {
               bossDefeated = true; bossActive = false; kills += 5;
               bossHpDisplay.classList.remove('active');
-              if (navigator.vibrate) navigator.vibrate(150);
               checkLevelComplete(); updateUI(); return;
             }
           }
         }
       }
 
-      // Вражеские пули
       for (let b of enemyBullets) { b.x += b.vx; b.y += b.vy; b.life--; }
       enemyBullets = enemyBullets.filter(b => b.life > 0);
 
@@ -1062,7 +1014,6 @@
         const b = enemyBullets[i];
         if (b.x > px && b.x < px + pw && b.y > py && b.y < py + ph) {
           player.hp -= b.damage; enemyBullets.splice(i, 1);
-          if (navigator.vibrate) navigator.vibrate(40);
           if (player.hp <= 0) { player.hp = 0; triggerGameOver(false); return; }
         }
       }
@@ -1157,12 +1108,13 @@
       
       initEnemies(); updateUI();
       debugDisplay.textContent = '👆 ТАП ДЛЯ СТАРТА';
-      if (navigator.vibrate) navigator.vibrate(50);
     }
 
-    winOverlay.addEventListener('pointerdown', (e) => { e.preventDefault(); restartGame(); });
-    loseOverlay.addEventListener('pointerdown', (e) => { e.preventDefault(); restartGame(); });
-    restartBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); restartGame(); });
+    // Используем click для оверлеев и кнопки рестарта
+    winOverlay.addEventListener('click', restartGame);
+    loseOverlay.addEventListener('click', restartGame);
+    restartBtn.addEventListener('click', restartGame);
+    startOverlay.addEventListener('click', startGame);
 
     function gameLoop(currentTime) {
       update(currentTime);
