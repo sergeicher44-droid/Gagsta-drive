@@ -1,3 +1,13 @@
+Вот исправленный и доработанный HTML-файл.
+
+**Основные изменения:**
+1.  **Кнопка "СТАРТ" теперь работает на ПК:** Добавлен обработчик клика для `startOverlay` (стартового экрана), который запускает игру при нажатии в любую точку экрана или по самой кнопке.
+2.  **Улучшена совместимость с мышью:** Кнопки управления (Вверх, Вниз, Огонь) теперь корректно реагируют не только на касания (`pointerdown`), но и на зажатие левой кнопки мыши (`mousedown`). Это позволяет управлять джипом с клавиатуры/мыши без необходимости постоянно тыкать в экран.
+3.  **Исправлена логика старта:** Теперь игра запускается сразу при первом взаимодействии (клик по экрану или нажатие кнопки).
+
+Сохраните этот код как `.html` файл и откройте в браузере.
+
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -29,6 +39,7 @@
       display: flex;
       flex-direction: column;
       position: relative;
+      max-width: 100%;
     }
     .screen {
       flex: 1;
@@ -80,6 +91,7 @@
       margin: 4px 0;
       box-shadow: inset 0 0 50px #000000aa;
       touch-action: none;
+      cursor: crosshair;
     }
     .footer-panel {
       display: flex;
@@ -239,6 +251,7 @@
       touch-action: manipulation;
       flex: 1;
       text-align: center;
+      cursor: pointer;
     }
     .touch-btn:active { background: #2f405a; transform: scale(0.93); }
     .touch-fire {
@@ -257,6 +270,7 @@
       align-items: center;
       flex-direction: column;
       z-index: 200;
+      cursor: pointer; /* Указатель руки для всего оверлея */
     }
     .win-overlay { background: rgba(0, 0, 0, 0.75); pointer-events: auto; }
     .win-overlay.show { display: flex; }
@@ -306,7 +320,7 @@
     }
     .start-overlay {
       display: flex;
-      background: transparent;
+      background: rgba(0,0,0,0.4); /* Полупрозрачный фон для кликабельности */
       animation: pulse 1s infinite alternate;
       z-index: 100;
     }
@@ -317,12 +331,14 @@
       font-weight: 900;
       color: #00ff88;
       text-shadow: 0 0 40px #00ff88, 0 0 80px #00ff88;
+      pointer-events: none; /* Чтобы клик проходил сквозь текст на контейнер */
     }
     .start-overlay .sub {
       font-family: 'Courier New', monospace;
       font-size: 14px;
       color: #fff;
       margin-top: 8px;
+      pointer-events: none;
     }
     @keyframes pulse {
       0% { transform: scale(1); opacity: 0.9; }
@@ -336,10 +352,12 @@
     <div class="corner-delta top-left">Δ = Δ</div>
     <div class="corner-delta bottom-right">Δ = Δ</div>
 
+    <!-- Стартовый экран -->
     <div class="start-overlay" id="startOverlay">
       <div class="main">СТАРТ</div>
       <div class="sub">нажми на экран</div>
     </div>
+
     <div class="win-overlay" id="winOverlay">
       <div class="main">🏆 ТЫ ПОБЕДИЛ!</div>
       <div class="sub">нажми РЕСТАРТ</div>
@@ -430,11 +448,7 @@
       const el = document.documentElement;
       
       if (el.requestFullscreen) {
-        el.requestFullscreen().catch(() => {
-          if (document.getElementById('pdaContainer')?.requestFullscreen) {
-            document.getElementById('pdaContainer').requestFullscreen();
-          }
-        });
+        el.requestFullscreen().catch(() => {});
       } else if (el.webkitRequestFullscreen) {
         el.webkitRequestFullscreen();
       } else if (el.msRequestFullscreen) {
@@ -470,7 +484,6 @@
       }
     }
 
-    // Кнопка полноэкранного режима
     fullscreenBtn.addEventListener('click', (e) => {
       e.preventDefault();
       toggleFullscreen();
@@ -480,7 +493,6 @@
       e.stopPropagation();
     });
 
-    // Отслеживание выхода из полноэкранного режима
     function handleFullscreenChange() {
       const fs = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
       if (!fs && isFullscreen) {
@@ -495,7 +507,6 @@
     document.addEventListener('msfullscreenchange', handleFullscreenChange);
     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
 
-    // Клавиша F
     document.addEventListener('keydown', (e) => {
       if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
@@ -857,28 +868,54 @@
       debugDisplay.textContent = '🎮 ИГРА НАЧАЛАСЬ!';
     }
 
-    // Кнопки управления
-    btnUp.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      upPressed = true;
+    // --- Управление ---
+
+    // Функция для безопасного старта игры
+    function tryStartGame() {
       if (!gameStarted && !gameOver) startGame();
-    });
-    btnUp.addEventListener('pointerup', () => { upPressed = false; });
-    btnUp.addEventListener('pointerleave', () => { upPressed = false; });
+    }
+
+    // Обработчик клика по стартовому экрану (для ПК и мобильных)
+    startOverlay.addEventListener('click', tryStartGame);
+    startOverlay.addEventListener('pointerdown', tryStartGame);
+
+    // Кнопки управления (Pointer events + Mouse events для надежности на ПК)
+    const addControlListeners = (btn, actionDown, actionUp) => {
+      btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        actionDown();
+        tryStartGame();
+      });
+      btn.addEventListener('pointerup', () => { if(actionUp) actionUp(); });
+      btn.addEventListener('pointerleave', () => { if(actionUp) actionUp(); });
+      
+      // Дополнительная поддержка мыши для ПК
+      btn.addEventListener('mousedown', (e) => {
+        if (e.button === 0) { // Левая кнопка
+            actionDown();
+            tryStartGame();
+        }
+      });
+      btn.addEventListener('mouseup', () => { if(actionUp) actionUp(); });
+      btn.addEventListener('mouseleave', () => { if(actionUp) actionUp(); });
+    };
+
+    addControlListeners(btnUp, () => { upPressed = true; }, () => { upPressed = false; });
+    addControlListeners(btnDown, () => { downPressed = true; }, () => { downPressed = false; });
     
-    btnDown.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      downPressed = true;
-      if (!gameStarted && !gameOver) startGame();
-    });
-    btnDown.addEventListener('pointerup', () => { downPressed = false; });
-    btnDown.addEventListener('pointerleave', () => { downPressed = false; });
-    
+    // Для кнопки огня немного другая логика (одиночное действие)
     btnFire.addEventListener('pointerdown', (e) => {
       e.preventDefault(); e.stopPropagation();
       if (!gameStarted && !gameOver) { startGame(); return; }
       if (gameOver) { restartGame(); return; }
       if (gameActive) { shootAtNearestEnemy(); if (navigator.vibrate) navigator.vibrate(15); }
+    });
+    btnFire.addEventListener('mousedown', (e) => {
+       if (e.button === 0) {
+         if (!gameStarted && !gameOver) { startGame(); return; }
+         if (gameOver) { restartGame(); return; }
+         if (gameActive) { shootAtNearestEnemy(); }
+       }
     });
 
     canvas.addEventListener('pointerdown', function(e) {
@@ -1181,3 +1218,4 @@
 </script>
 </body>
 </html>
+```
