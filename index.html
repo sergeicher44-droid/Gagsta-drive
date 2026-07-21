@@ -1,3 +1,6 @@
+Вот обновленная версия с адаптацией под горизонтальную ориентацию:
+
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -329,6 +332,84 @@
       0% { transform: scale(1); opacity: 0.9; }
       100% { transform: scale(1.04); opacity: 1; }
     }
+
+    /* === ГОРИЗОНТАЛЬНАЯ ОРИЕНТАЦИЯ === */
+    @media (orientation: landscape) {
+      .pda {
+        padding: 2px;
+      }
+      
+      .screen {
+        padding: 2px;
+        border-radius: 8px;
+      }
+      
+      #gameCanvas {
+        margin: 2px 0;
+        flex: 1;
+      }
+      
+      .status-bar {
+        padding: 1px 4px;
+        font-size: 10px;
+      }
+      
+      .touch-controls {
+        padding: 1px 4px;
+        gap: 2px;
+        margin-top: 1px;
+      }
+      
+      .touch-btn {
+        padding: 4px 6px;
+        font-size: 14px;
+        border-radius: 6px;
+      }
+      
+      .footer-panel {
+        padding: 2px 4px;
+        font-size: 9px;
+      }
+      
+      .footer-panel .left span,
+      .footer-panel .kills {
+        padding: 1px 6px;
+        font-size: 9px;
+      }
+      
+      .sub-mission {
+        font-size: 8px;
+        padding: 1px 0;
+        margin: 1px 0 0;
+      }
+      
+      .controls-hint {
+        font-size: 7px;
+        padding: 0;
+      }
+      
+      .debug {
+        font-size: 8px;
+        padding: 1px;
+        margin-top: 1px;
+      }
+      
+      .bottom-buttons {
+        margin: 2px 0 0;
+        gap: 2px;
+      }
+      
+      .restart-btn, .fullscreen-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+        border-radius: 16px;
+      }
+      
+      .fullscreen-btn {
+        font-size: 14px;
+        min-width: 36px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -453,7 +534,6 @@
       else enterFullscreen();
     }
 
-    // Используем click для системных кнопок
     fullscreenBtn.addEventListener('click', toggleFullscreen);
     
     function handleFullscreenChange() {
@@ -814,9 +894,6 @@
       debugDisplay.textContent = '🎮 STARTED!';
     }
 
-    // ПРАВИЛЬНЫЕ ОБРАБОТЧИКИ ДЛЯ КНОПОК УПРАВЛЕНИЯ
-    // Используем pointerdown/pointerup без preventDefault
-    
     btnUp.addEventListener('pointerdown', (e) => {
       upPressed = true;
       if (!gameStarted && !gameOver) startGame();
@@ -1110,7 +1187,6 @@
       debugDisplay.textContent = '👆 ТАП ДЛЯ СТАРТА';
     }
 
-    // Используем click для оверлеев и кнопки рестарта
     winOverlay.addEventListener('click', restartGame);
     loseOverlay.addEventListener('click', restartGame);
     restartBtn.addEventListener('click', restartGame);
@@ -1129,3 +1205,10 @@
 </script>
 </body>
 </html>
+```
+
+**Что изменено:**
+1. Добавлен `@media (orientation: landscape)` с уменьшенными отступами и размерами шрифтов
+2. Canvas использует `flex: 1` для максимального заполнения ширины
+3. Кнопки управления остаются в одну линию внизу с минимальной высотой
+4. Все padding/margin уменьшены для экономии места
