@@ -162,7 +162,7 @@
       align-items: center;
       gap: 4px;
     }
-    .restart-btn {
+    .restart-btn, .fullscreen-btn {
       background: #2a1f1f;
       border: 1px solid #5a3a3a;
       color: #ff8888;
@@ -175,7 +175,12 @@
       letter-spacing: 1px;
       transition: all 0.2s;
     }
-    .restart-btn:active {
+    .fullscreen-btn {
+      background: #1f2a1f;
+      border: 1px solid #3a5a3a;
+      color: #88ff88;
+    }
+    .restart-btn:active, .fullscreen-btn:active {
       background: #4a2a2a;
       transform: scale(0.95);
     }
@@ -279,6 +284,110 @@
         display: block;
       }
     }
+    
+    /* Адаптация для горизонтальной ориентации */
+    @media (orientation: landscape) {
+      .hud-top {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      
+      .hp-bar-bg {
+        width: 100px;
+      }
+      
+      .xp-bar-bg {
+        width: 80px;
+      }
+      
+      .hud-bottom {
+        padding: 6px;
+        font-size: 10px;
+      }
+      
+      .joystick-container {
+        bottom: 70px;
+        left: 15px;
+        width: 100px;
+        height: 100px;
+      }
+      
+      .joystick-stick {
+        width: 40px;
+        height: 40px;
+      }
+    }
+    
+    /* Адаптация для очень маленьких экранов */
+    @media (max-width: 400px) {
+      .hud-top {
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+      
+      .hp-bar-bg {
+        width: 80px;
+      }
+      
+      .xp-bar-bg {
+        width: 60px;
+      }
+      
+      .hud-bottom {
+        padding: 4px;
+        font-size: 9px;
+      }
+      
+      .weapon-slot {
+        padding: 4px 10px;
+        font-size: 11px;
+      }
+      
+      .restart-btn, .fullscreen-btn {
+        padding: 6px 12px;
+        font-size: 10px;
+      }
+    }
+    
+    /* Стили для полноэкранного режима */
+    :fullscreen {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+    }
+    
+    :-webkit-full-screen {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+    }
+    
+    :-moz-full-screen {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+    }
+    
+    /* Индикатор ориентации */
+    .orientation-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: #fff;
+      padding: 20px 30px;
+      border-radius: 10px;
+      font-size: 16px;
+      text-align: center;
+      z-index: 200;
+      display: none;
+      border: 2px solid #4a5a6a;
+    }
+    
+    .orientation-hint.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -288,6 +397,11 @@
       <div class="main">💀 УНИЧТОЖЕН</div>
       <div class="sub">Волна: <span id="deathWave">1</span> | Убито: <span id="deathKills">0</span></div>
       <div class="sub" style="margin-top:20px;">ЖМИ ДЛЯ РЕСТАРТА</div>
+    </div>
+    
+    <!-- Индикатор ориентации -->
+    <div class="orientation-hint" id="orientationHint">
+      🔄 Поверните устройство<br>для лучшего опыта
     </div>
     
     <div class="hud-top">
@@ -317,6 +431,7 @@
       <div class="weapon-slot">🔫 <span id="weaponDisplay">ПУЛЕМЁТ</span></div>
       <div class="stat-box">💀 <span id="killCount">0</span></div>
       <div class="stat-box">⏱️ <span id="timerDisplay">0:00</span></div>
+      <button class="fullscreen-btn" id="fullscreenBtn">⛶ ПОЛНЫЙ ЭКРАН</button>
       <button class="restart-btn" id="restartBtn">⟳ РЕСТАРТ</button>
     </div>
   </div>
@@ -340,9 +455,11 @@
     const deathWave = document.getElementById('deathWave');
     const deathKills = document.getElementById('deathKills');
     const restartBtn = document.getElementById('restartBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
     const screenContainer = document.getElementById('screenContainer');
     const joystickContainer = document.getElementById('joystickContainer');
     const joystickStick = document.getElementById('joystickStick');
+    const orientationHint = document.getElementById('orientationHint');
 
     // Состояние игры
     let gameActive = true;
@@ -416,14 +533,95 @@
     
     function updateJoystickPosition() {
       const rect = screenContainer.getBoundingClientRect();
-      const baseBottom = 80;
-      const baseLeft = 20;
-      joystickCenterX = baseLeft + 60; // половина ширины джойстика
-      joystickCenterY = rect.height - baseBottom - 60; // половина высоты джойстика
+      const isPortrait = window.innerHeight > window.innerWidth;
+      
+      if (isPortrait) {
+        // Вертикальная ориентация
+        const baseBottom = 80;
+        const baseLeft = 20;
+        joystickCenterX = baseLeft + 60;
+        joystickCenterY = rect.height - baseBottom - 60;
+      } else {
+        // Горизонтальная ориентация
+        const baseBottom = 70;
+        const baseLeft = 15;
+        joystickCenterX = baseLeft + 50;
+        joystickCenterY = rect.height - baseBottom - 50;
+      }
+    }
+
+    // Проверка ориентации
+    function checkOrientation() {
+      const isPortrait = window.innerHeight > window.innerWidth;
+      
+      if (isPortrait && window.innerWidth < 600) {
+        // Показываем подсказку для поворота на маленьких экранах в портретной ориентации
+        orientationHint.classList.add('show');
+        setTimeout(() => {
+          orientationHint.classList.remove('show');
+        }, 3000);
+      } else {
+        orientationHint.classList.remove('show');
+      }
+      
+      resizeCanvas();
+    }
+
+    // Полноэкранный режим
+    function toggleFullscreen() {
+      if (!document.fullscreenElement && 
+          !document.webkitFullscreenElement && 
+          !document.mozFullScreenElement) {
+        // Вход в полноэкранный режим
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(err => {
+            console.log('Error attempting to enable fullscreen:', err);
+          });
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        }
+        fullscreenBtn.textContent = '⛶ ОБЫЧНЫЙ ЭКРАН';
+      } else {
+        // Выход из полноэкранного режима
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        }
+        fullscreenBtn.textContent = '⛶ ПОЛНЫЙ ЭКРАН';
+      }
+    }
+
+    // Обработчик изменения полноэкранного режима
+    function handleFullscreenChange() {
+      if (!document.fullscreenElement && 
+          !document.webkitFullscreenElement && 
+          !document.mozFullScreenElement) {
+        fullscreenBtn.textContent = '⛶ ПОЛНЫЙ ЭКРАН';
+      } else {
+        fullscreenBtn.textContent = '⛶ ОБЫЧНЫЙ ЭКРАН';
+      }
+      // Пересчитываем размеры после изменения полноэкранного режима
+      setTimeout(resizeCanvas, 100);
     }
 
     window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        checkOrientation();
+        resizeCanvas();
+      }, 100);
+    });
+    
+    // Слушатели изменения полноэкранного режима
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
     
     // Обработчики ввода
     document.addEventListener('keydown', e => { keys[e.code] = true; });
@@ -525,6 +723,7 @@
 
     deathOverlay.addEventListener('click', restartGame);
     restartBtn.addEventListener('click', restartGame);
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
 
     // Спавн врагов
     function spawnEnemy(type) {
@@ -1045,6 +1244,7 @@
 
     // Инициализация
     resizeCanvas();
+    checkOrientation();
     player.x = canvas.width / 2;
     player.y = canvas.height / 2;
     spawnWave();
