@@ -1,3 +1,8 @@
+Вот обновленный код. Я добавил обработку событий клавиатуры (`keydown`/`keyup`) для управления **W** и **S**, а также обработчик мыши для стрельбы по **ПКМ (Правая Кнопка Мыши)**.
+
+Логика игры осталась прежней, просто добавились новые способы ввода.
+
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -20,7 +25,7 @@
       overflow: hidden;
       background: #0b0f1a;
       font-family: 'Courier New', monospace;
-      touch-action: none;
+      touch-action: none; /* Важно для предотвращения зума на мобильных */
       position: fixed;
       top: 0;
       left: 0;
@@ -101,6 +106,7 @@
       touch-action: none;
       min-height: 0;
       object-fit: contain;
+      cursor: crosshair; /* Курсор прицела для ПК */
     }
 
     .footer-panel {
@@ -535,7 +541,7 @@
 
       <div class="start-overlay" id="startOverlay">
         <div class="main">СТАРТ</div>
-        <div class="sub">нажми на экран</div>
+        <div class="sub">нажми на экран / W-S / ПКМ</div>
       </div>
       <div class="win-overlay" id="winOverlay">
         <div class="main">🏆 ПОБЕДА!</div>
@@ -569,7 +575,7 @@
         <div class="kills" id="enemyCountDisplay">🚗 0/10</div>
         <div class="boss-hp" id="bossHpDisplay">💀 БОСС: 5</div>
       </div>
-      <div class="controls-hint">ТАП = ОГОНЬ | ⛶ = ФУЛЛСКРИН</div>
+      <div class="controls-hint">ТАП/ПКМ = ОГОНЬ | W/S = ДВИЖЕНИЕ | ⛶ = ФУЛЛСКРИН</div>
       <div class="sub-mission">
         <span>⚡ цель: <strong>10</strong> тачек ⚡</span>
       </div>
@@ -1126,6 +1132,38 @@
         debugDisplay.textContent = '🎮 STARTED!';
       }
 
+      // --- НОВОЕ: Обработка клавиатуры (W и S) ---
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'KeyW') {
+          upPressed = true;
+          if (!gameStarted && !gameOver) startGame();
+        }
+        if (e.code === 'KeyS') {
+          downPressed = true;
+          if (!gameStarted && !gameOver) startGame();
+        }
+      });
+
+      document.addEventListener('keyup', (e) => {
+        if (e.code === 'KeyW') upPressed = false;
+        if (e.code === 'KeyS') downPressed = false;
+      });
+
+      // --- НОВОЕ: Обработка ПКМ (Правая кнопка мыши) ---
+      document.addEventListener('contextmenu', event => {
+        event.preventDefault(); // Отключаем контекстное меню браузера
+        
+        if (!gameStarted && !gameOver) {
+          startGame();
+          return;
+        }
+        if (gameOver) {
+          restartGame();
+          return;
+        }
+        if (gameActive) shootAtNearestEnemy();
+      });
+
       btnUp.addEventListener('pointerdown', (e) => {
         upPressed = true;
         if (!gameStarted && !gameOver) startGame();
@@ -1155,6 +1193,9 @@
       });
 
       canvas.addEventListener('pointerdown', function(e) {
+        // Игнорируем правую кнопку мыши здесь, так как она обрабатывается в contextmenu
+        if (e.button === 2) return; 
+
         if (!gameStarted && !gameOver) {
           startGame();
           return;
@@ -1545,3 +1586,4 @@
   </script>
 </body>
 </html>
+```
